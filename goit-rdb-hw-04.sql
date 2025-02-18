@@ -115,60 +115,110 @@ LEFT JOIN suppliers s ON p.supplier_id = s.id;
 -- STEP 4: Select data (p4_*.png)
 --------------------------------
 
--- 4.1 Select the total number of rows in the order_details table
-SELECT COUNT(*) AS total_rows
-FROM order_details od
-INNER JOIN orders o ON od.order_id = o.id
-INNER JOIN customers c ON o.customer_id = c.id
-INNER JOIN products p ON od.product_id = p.id
-INNER JOIN categories cat ON p.category_id = cat.id
-INNER JOIN employees e ON o.employee_id = e.employee_id
-INNER JOIN shippers s ON o.shipper_id = s.id
-INNER JOIN suppliers sup ON p.supplier_id = sup.id;
+4.1--------------------------------------------------------------------------------
+SELECT count(orders.id) as total
+from orders
+INNER JOIN customers on orders.customer_id = customers.id
+INNER JOIN employees on orders.employee_id = employees.employee_id
+INNER JOIN order_details on orders.id = order_details.order_id
+INNER JOIN products on order_details.product_id = products.id
+INNER JOIN categories on products.category_id = categories.id
+INNER JOIN suppliers on products.supplier_id = suppliers.id
+INNER JOIN shippers on orders.shipper_id = shippers.id
+4.2--------------------------------------------------------------------------------
+SELECT count(orders.id) as total
+from orders
+INNER JOIN customers on orders.customer_id = customers.id
+INNER JOIN employees on orders.employee_id = employees.employee_id
+LEFT JOIN order_details on orders.id = order_details.order_id
+INNER JOIN products on order_details.product_id = products.id
+LEFT JOIN categories on products.category_id = categories.id
+INNER JOIN suppliers on products.supplier_id = suppliers.id
+INNER JOIN shippers on orders.shipper_id = shippers.id
+-------------------------------------------------------------------------------
+SELECT count(orders.id) as total
+from orders
+INNER JOIN customers on orders.customer_id = customers.id
+INNER JOIN employees on orders.employee_id = employees.employee_id
+INNER JOIN order_details on orders.id = order_details.order_id
+INNER JOIN products on order_details.product_id = products.id
+RIGHT JOIN categories on products.category_id = categories.id
+INNER JOIN suppliers on products.supplier_id = suppliers.id
+INNER JOIN shippers on orders.shipper_id = shippers.id
 
--- 4.2 Select all columns from all tables in the query
-SELECT od.*, o.*, c.*, p.*, cat.*, e.*, s.*, sup.*
-FROM order_details od
-LEFT JOIN orders o ON od.order_id = o.id
-LEFT JOIN customers c ON o.customer_id = c.id
-LEFT JOIN products p ON od.product_id = p.id
-LEFT JOIN categories cat ON p.category_id = cat.id
-LEFT JOIN employees e ON o.employee_id = e.employee_id
-LEFT JOIN shippers s ON o.shipper_id = s.id
-LEFT JOIN suppliers sup ON p.supplier_id = sup.id;
+4.3--------------------------------------------------------------------------------------
+SELECT orders.id as order_id, customers.name as customer, 
+employees.last_name as employee, products.name as product, order_details.quantity,
+categories.name as category, shippers.name as shipper, suppliers.name as suppliers, 
+orders.date as date
+from orders
+INNER JOIN customers on orders.customer_id = customers.id
+INNER JOIN employees on orders.employee_id = employees.employee_id
+INNER JOIN order_details on orders.id = order_details.order_id
+INNER JOIN products on order_details.product_id = products.id
+INNER JOIN categories on products.category_id = categories.id
+INNER JOIN suppliers on products.supplier_id = suppliers.id
+INNER JOIN shippers on orders.shipper_id = shippers.id
+where employees.employee_id > 3 and  employees.employee_id <= 10
+4.4--------------------------------------------------------------------------------------
+SELECT categories.name as category, COUNT(*) as total_orders, 
+AVG(order_details.quantity) as avg_quantity
+from orders
+INNER JOIN customers on orders.customer_id = customers.id
+INNER JOIN employees on orders.employee_id = employees.employee_id
+INNER JOIN order_details on orders.id = order_details.order_id
+INNER JOIN products on order_details.product_id = products.id
+INNER JOIN categories on products.category_id = categories.id
+INNER JOIN suppliers on products.supplier_id = suppliers.id
+INNER JOIN shippers on orders.shipper_id = shippers.id
+where employees.employee_id > 3 and  employees.employee_id <= 10
+group by categories.name
+4.5--------------------------------------------------------------------------------------
+SELECT categories.name AS category,  COUNT(*) AS total_orders, 
+AVG(order_details.quantity) AS avg_quantity
+from orders
+INNER JOIN customers on orders.customer_id = customers.id
+INNER JOIN employees on orders.employee_id = employees.employee_id
+INNER JOIN order_details on orders.id = order_details.order_id
+INNER JOIN products on order_details.product_id = products.id
+INNER JOIN categories on products.category_id = categories.id
+INNER JOIN suppliers on products.supplier_id = suppliers.id
+INNER JOIN shippers on orders.shipper_id = shippers.id
+where employees.employee_id > 3 and  employees.employee_id <= 10
+group by categories.name
+having avg_quantity > 21
+4.6--------------------------------------------------------------------------------------
+SELECT categories.name AS category,  COUNT(*) AS total_orders, 
+AVG(order_details.quantity) AS avg_quantity
+from orders
+INNER JOIN customers on orders.customer_id = customers.id
+INNER JOIN employees on orders.employee_id = employees.employee_id
+INNER JOIN order_details on orders.id = order_details.order_id
+INNER JOIN products on order_details.product_id = products.id
+INNER JOIN categories on products.category_id = categories.id
+INNER JOIN suppliers on products.supplier_id = suppliers.id
+INNER JOIN shippers on orders.shipper_id = shippers.id
+where employees.employee_id > 3 and  employees.employee_id <= 10
+group by categories.name
+having avg_quantity > 21
+order by total_orders desc
+4.7--------------------------------------------------------------------------------------
+SELECT categories.name AS category,  COUNT(*) AS total_orders, 
+AVG(order_details.quantity) AS avg_quantity
+from orders
+INNER JOIN customers on orders.customer_id = customers.id
+INNER JOIN employees on orders.employee_id = employees.employee_id
+INNER JOIN order_details on orders.id = order_details.order_id
+INNER JOIN products on order_details.product_id = products.id
+INNER JOIN categories on products.category_id = categories.id
+INNER JOIN suppliers on products.supplier_id = suppliers.id
+INNER JOIN shippers on orders.shipper_id = shippers.id
+where employees.employee_id > 3 and  employees.employee_id <= 10
+group by categories.name
+having avg_quantity > 21
+order by total_orders desc
+limit 4 offset 1
 
--- 4.3 Select all columns from the employees table where the employee_id is greater than 3 and less than or equal to 10
-SELECT *
-FROM employees
-WHERE employee_id > 3 AND employee_id <= 10;
-
--- 4.4 Select the category name, the number of rows in the order_details table for each category, and the average quantity of products ordered for each category
-SELECT cat.name, COUNT(*) AS row_count, AVG(od.quantity) AS avg_quantity
-FROM order_details od
-INNER JOIN products p ON od.product_id = p.id
-INNER JOIN categories cat ON p.category_id = cat.id
-GROUP BY cat.name;
-
--- 4.5 Select the category name, the number of rows in the order_details table for each category, and the average quantity of products ordered for each category where the average quantity is greater than 21
-SELECT cat.name, COUNT(*) AS row_count, AVG(od.quantity) AS avg_quantity
-FROM order_details od
-INNER JOIN products p ON od.product_id = p.id
-INNER JOIN categories cat ON p.category_id = cat.id
-GROUP BY cat.name
-HAVING AVG(od.quantity) > 21;
-
--- 4.6 Select the category name, the number of rows in the order_details table for each category, and the average quantity of products ordered for each category where the average quantity is greater than 21. Order the results by the row count in descending order
-SELECT cat.name, COUNT(*) AS row_count, AVG(od.quantity) AS avg_quantity
-FROM order_details od
-INNER JOIN products p ON od.product_id = p.id
-INNER JOIN categories cat ON p.category_id = cat.id
-GROUP BY cat.name
-HAVING AVG(od.quantity) > 21
-ORDER BY row_count DESC;
-
--- 4.7 Select the category name, the number of rows in the order_details table for each category, and the average quantity of products ordered for each category where the average quantity is greater than 21. Order the results by the row count in descending order and limit the number of rows to 4
-SELECT *
-FROM employees
-LIMIT 4 OFFSET 1;
-
+--------------------------------
 -- Thanks for your attention! --
+--------------------------------
